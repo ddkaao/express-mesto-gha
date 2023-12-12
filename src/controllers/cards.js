@@ -66,7 +66,7 @@ module.exports.likeCard = async (req, res) => {
   } catch (error) {
     switch (error.name) {
       case 'CastError':
-        return res.status(BAD).send({ message: 'Переданы некорректные данные для постановки лайка' });
+        return res.status(BAD).send({ message: 'Карточка не найдена' });
       default:
         return res.status(SERVER__ERROR).send({ message: 'На сервере произошла ошибка' });
     }
@@ -85,7 +85,7 @@ module.exports.dislikeCard = async (req, res) => {
   } catch (error) {
     switch (error.name) {
       case 'CastError':
-        return res.status(BAD).send({ message: 'Переданы некорректные данные для снятии лайка' });
+        return res.status(BAD).send({ message: 'Карточка не найдена' });
       default:
         return res.status(SERVER__ERROR).send({ message: 'На сервере произошла ошибка' });
     }
