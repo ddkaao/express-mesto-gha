@@ -1,11 +1,17 @@
 const Card = require('../models/Card');
 
+const OK = 200;
+const CREATED = 201;
+const NOT_FOUND = 404;
+const BAD = 400;
+const SERVER__ERROR = 500;
+
 module.exports.getCards = async (req, res) => {
   try {
     const cards = await Card.find({});
-    return res.status(200).send(cards);
+    return res.status(OK).send(cards);
   } catch (error) {
-    return res.status(500).send({ message: 'Ошибка на стороне сервера' });
+    return res.status(SERVER__ERROR).send({ message: 'На сервере произошла ошибка' });
   }
 };
 
@@ -18,13 +24,13 @@ module.exports.createCard = async (req, res) => {
       link,
       owner,
     });
-    return res.status(201).send(newCard);
+    return res.status(CREATED).send(newCard);
   } catch (error) {
     switch (error.name) {
       case 'ValidationError':
-        return res.status(400).send({ message: 'Переданы некорректные данные при создании карточки' });
+        return res.status(BAD).send({ message: 'Переданы некорректные данные при создании карточки' });
       default:
-        return res.status(500).send({ message: 'Ошибка на стороне сервера' });
+        return res.status(SERVER__ERROR).send({ message: 'На сервере произошла ошибка' });
     }
   }
 };
@@ -41,9 +47,9 @@ module.exports.deleteCard = async (req, res) => {
   } catch (error) {
     switch (error.name) {
       case 'CastError':
-        return res.status(404).send({ message: 'Карточка по указанному id не найдена' });
+        return res.status(NOT_FOUND).send({ message: 'Карточка по указанному id не найдена' });
       default:
-        return res.status(500).send({ message: 'Ошибка на стороне сервера' });
+        return res.status(SERVER__ERROR).send({ message: 'На сервере произошла ошибка' });
     }
   }
 };
@@ -60,11 +66,9 @@ module.exports.likeCard = async (req, res) => {
   } catch (error) {
     switch (error.name) {
       case 'CastError':
-        return res.status(404).send({ message: 'Передан несуществующий id карточки' });
-      case 'ValidationError':
-        return res.status(400).send({ message: 'Переданы некорректные данные для постановки лайка' });
+        return res.status(BAD).send({ message: 'Переданы некорректные данные для постановки лайка' });
       default:
-        return res.status(500).send({ message: 'Ошибка на стороне сервера' });
+        return res.status(SERVER__ERROR).send({ message: 'На сервере произошла ошибка' });
     }
   }
 };
@@ -81,11 +85,9 @@ module.exports.dislikeCard = async (req, res) => {
   } catch (error) {
     switch (error.name) {
       case 'CastError':
-        return res.status(404).send({ message: 'Передан несуществующий id карточки' });
-      case 'ValidationError':
-        return res.status(400).send({ message: 'Переданы некорректные данные для постановки лайка' });
+        return res.status(BAD).send({ message: 'Переданы некорректные данные для снятии лайка' });
       default:
-        return res.status(500).send({ message: 'Ошибка на стороне сервера' });
+        return res.status(SERVER__ERROR).send({ message: 'На сервере произошла ошибка' });
     }
   }
 };
