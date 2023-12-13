@@ -43,11 +43,14 @@ module.exports.deleteCard = async (req, res) => {
       _id: cardId,
       owner,
     });
+    if (!selectedCard) {
+      return res.status(NOT_FOUND).send({ message: 'Карточка по указанному id не найдена' });
+    }
     return res.send(selectedCard);
   } catch (error) {
     switch (error.name) {
       case 'CastError':
-        return res.status(NOT_FOUND).send({ message: 'Карточка по указанному id не найдена' });
+        return res.status(NOT_FOUND).send({ message: 'Передан не валидный идентификатор' });
       default:
         return res.status(SERVER__ERROR).send({ message: 'На сервере произошла ошибка' });
     }
@@ -62,11 +65,14 @@ module.exports.likeCard = async (req, res) => {
       { $addToSet: { likes: req.user._id } },
       { new: true },
     );
+    if (!card) {
+      return res.status(NOT_FOUND).send({ message: 'Карточка по указанному id не найдена' });
+    }
     return res.send(card);
   } catch (error) {
     switch (error.name) {
       case 'CastError':
-        return res.status(BAD).send({ message: 'Карточка не найдена' });
+        return res.status(NOT_FOUND).send({ message: 'Передан не валидный идентификатор' });
       default:
         return res.status(SERVER__ERROR).send({ message: 'На сервере произошла ошибка' });
     }
@@ -81,11 +87,14 @@ module.exports.dislikeCard = async (req, res) => {
       { $pull: { likes: req.user._id } },
       { new: true },
     );
+    if (!card) {
+      return res.status(NOT_FOUND).send({ message: 'Карточка по указанному id не найдена' });
+    }
     return res.send(card);
   } catch (error) {
     switch (error.name) {
       case 'CastError':
-        return res.status(BAD).send({ message: 'Карточка не найдена' });
+        return res.status(NOT_FOUND).send({ message: 'Передан не валидный идентификатор' });
       default:
         return res.status(SERVER__ERROR).send({ message: 'На сервере произошла ошибка' });
     }

@@ -19,11 +19,14 @@ module.exports.getUserById = async (req, res) => {
   const { userId } = req.params;
   try {
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
+    }
     return res.status(OK).send(user);
   } catch (error) {
     switch (error.name) {
       case 'CastError':
-        return res.status(NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
+        return res.status(NOT_FOUND).send({ message: 'Передан не валидный идентификатор' });
       default:
         return res.status(SERVER__ERROR).send({ message: 'На сервере произошла ошибка' });
     }
@@ -53,11 +56,14 @@ module.exports.updateUserInfo = async (req, res) => {
       { name, about },
       { new: true, runValidators: true },
     );
+    if (!user) {
+      return res.status(NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
+    }
     return res.send(user);
   } catch (error) {
     switch (error.name) {
       case 'CastError':
-        return res.status(NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
+        return res.status(NOT_FOUND).send({ message: 'Передан не валидный идентификатор' });
       case 'ValidationError':
         return res.status(BAD).send({ message: 'Переданы некорректные данные при создании пользователя' });
       default:
@@ -75,11 +81,14 @@ module.exports.updateUserAvatar = async (req, res) => {
       { avatar },
       { new: true, runValidators: true },
     );
+    if (!user) {
+      return res.status(NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
+    }
     return res.send(user);
   } catch (error) {
     switch (error.name) {
       case 'CastError':
-        return res.status(NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
+        return res.status(NOT_FOUND).send({ message: 'Передан не валидный идентификатор' });
       case 'ValidationError':
         return res.status(BAD).send({ message: 'Переданы некорректные данные при создании пользователя' });
       default:
