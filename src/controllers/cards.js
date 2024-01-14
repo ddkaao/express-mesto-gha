@@ -33,15 +33,16 @@ module.exports.deleteCard = async (req, res, next) => {
   const { cardId } = req.params;
   const owner = req.user._id;
   try {
-    const selectedCard = await Card.findByIdAndDelete({
+    const selectedCard = await Card.findById({
       _id: cardId,
-      owner,
     })
       .orFail(() => new NotFoundError('Карточка по указанному id не найдена'));
     if (owner !== selectedCard.owner.toString()) {
       throw new ForbiddenError('Нельзя удалить чужую карточку');
+    } else {
+      await selectedCard.deleteOne();
+      return res.status(OK).send(selectedCard);
     }
-    return res.send(selectedCard);
   } catch (error) {
     return next(error);
   }

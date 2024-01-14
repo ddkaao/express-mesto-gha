@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 const mongoose = require('mongoose');
 const validator = require('validator');
 
@@ -36,7 +35,6 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      minLength: 8,
       select: false,
     },
   },

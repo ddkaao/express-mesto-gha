@@ -1,17 +1,15 @@
-/* eslint-disable import/order */
-/* eslint-disable import/no-extraneous-dependencies */
 const express = require('express');
 require('dotenv').config();
 const mongoose = require('mongoose');
+const { celebrate, Joi } = require('celebrate');
+const cookieParser = require('cookie-parser');
+const { errors } = require('celebrate');
 const {
   createUser,
   login,
 } = require('./controllers/users');
-const cookieParser = require('cookie-parser');
-const { celebrate, Joi } = require('celebrate');
 const { auth } = require('./middlewares/auth');
 const { error } = require('./middlewares/error');
-const { errors } = require('celebrate');
 const NotFoundError = require('./errors/NotFoundError');
 
 const app = express();
