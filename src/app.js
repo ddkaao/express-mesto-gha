@@ -26,18 +26,18 @@ app.use(cookieParser());
 
 app.post('/signin', celebrate({
   body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-    about: Joi.string().required().min(2).max(30),
-    avatar: Joi.string().required().regex(REGEX),
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().regex(REGEX),
     email: Joi.string().email().required(),
     password: Joi.string().required(),
   }),
 }), login);
 app.post('/signup', celebrate({
   body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-    about: Joi.string().required().min(2).max(30),
-    avatar: Joi.string().required().regex(REGEX),
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().regex(REGEX),
     email: Joi.string().email().required(),
     password: Joi.string().required(),
   }),
