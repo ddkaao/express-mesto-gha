@@ -1,21 +1,24 @@
 const User = require('../models/User');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const NotFoundError = require('../errors/NotFoundError');
+const UnauthorizedError = require('../errors/UnauthorizedError');
 
 const OK = 200;
 const CREATED = 201;
-const NOT_FOUND = 404;
-const BAD = 400;
-const SERVER__ERROR = 500;
 
-module.exports.getUsers = async (req, res) => {
+const SALT_ROUNDS = 10;
+
+module.exports.getUsers = async (req, res, next) => {
   try {
     const users = await User.find({});
     return res.status(OK).send(users);
   } catch (error) {
-    return res.status(SERVER__ERROR).send({ message: 'На сервере произошла ошибка' });
+    return next(error);
   }
 };
 
-module.exports.getUserById = async (req, res) => {
+module.exports.getUserById = async (req, res, next) => {
   const { userId } = req.params;
   try {
     const user = await User.findById(userId);
@@ -24,30 +27,39 @@ module.exports.getUserById = async (req, res) => {
     }
     return res.status(OK).send(user);
   } catch (error) {
-    switch (error.name) {
-      case 'CastError':
-        return res.status(NOT_FOUND).send({ message: 'Передан не валидный идентификатор' });
-      default:
-        return res.status(SERVER__ERROR).send({ message: 'На сервере произошла ошибка' });
-    }
+    return next(error);
   }
 };
 
-module.exports.createUser = async (req, res) => {
+module.exports.createUser = async (req, res, next) => {
+  const {
+    name,
+    about,
+    avatar,
+    email,
+    password,
+  } = req.body;
   try {
-    const newUser = await User.create(req.body);
-    return res.status(CREATED).send(newUser);
+    const hash = await bcrypt.hash(password, SALT_ROUNDS);
+    const newUser = await User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
+    });
+    return res.status(CREATED).send({
+      name: newUser.name,
+      about: newUser.about,
+      avatar: newUser.avatar,
+      email: newUser.email,
+    });
   } catch (error) {
-    switch (error.name) {
-      case 'ValidationError':
-        return res.status(BAD).send({ message: 'Переданы некорректные данные при создании пользователя' });
-      default:
-        return res.status(SERVER__ERROR).send({ message: 'На сервере произошла ошибка' });
-    }
+    return next(error);
   }
 };
 
-module.exports.updateUserInfo = async (req, res) => {
+module.exports.updateUserInfo = async (req, res, next) => {
   const { name, about } = req.body;
   const owner = req.user._id;
   try {
@@ -55,24 +67,15 @@ module.exports.updateUserInfo = async (req, res) => {
       owner,
       { name, about },
       { new: true, runValidators: true },
-    );
-    if (!user) {
-      return res.status(NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
-    }
+    )
+    .orFail(() => new NotFoundError('Пользователь по указанному id не найден'));
     return res.send(user);
   } catch (error) {
-    switch (error.name) {
-      case 'CastError':
-        return res.status(NOT_FOUND).send({ message: 'Передан не валидный идентификатор' });
-      case 'ValidationError':
-        return res.status(BAD).send({ message: 'Переданы некорректные данные при создании пользователя' });
-      default:
-        return res.status(SERVER__ERROR).send({ message: 'На сервере произошла ошибка' });
-    }
+    return next(error);
   }
 };
 
-module.exports.updateUserAvatar = async (req, res) => {
+module.exports.updateUserAvatar = async (req, res, next) => {
   const { avatar } = req.body;
   const owner = req.user._id;
   try {
@@ -80,19 +83,43 @@ module.exports.updateUserAvatar = async (req, res) => {
       owner,
       { avatar },
       { new: true, runValidators: true },
-    );
-    if (!user) {
-      return res.status(NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
-    }
+    )
+    .orFail(() => new NotFoundError('Пользователь по указанному id не найден'));
     return res.send(user);
   } catch (error) {
-    switch (error.name) {
-      case 'CastError':
-        return res.status(NOT_FOUND).send({ message: 'Передан не валидный идентификатор' });
-      case 'ValidationError':
-        return res.status(BAD).send({ message: 'Переданы некорректные данные при создании пользователя' });
-      default:
-        return res.status(SERVER__ERROR).send({ message: 'На сервере произошла ошибка' });
+    return next(error);
+  }
+};
+
+module.exports.login = async (req, res, next) => {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({email}).select("+password")
+    .orFail(() => new UnauthorizedError('Неправильные почта или пароль'));
+    const matched = await bcrypt.compare(password, user.password);
+    if (!matched) {
+      throw new UnauthorizedError('Неправильные почта или пароль');
     }
+    const token = jwt.sign(
+      { _id: user._id },
+      'dev-secret',
+      {expiresIn: '7d'},
+    );
+    return res
+      .status(OK)
+      .cookie('jwt', token, { maxAge: 3600000 * 24 * 7, httpOnly: true })
+      .send({ data: { _id: user._id, email: user.email }, token })
+  } catch (error) {
+    return next(error);
+  }
+};
+
+module.exports.getUser = async (req, res, next) => {
+  const { _id } = req.user;
+  try {
+    const user = await User.findById(_id);
+    res.status(OK).send(user);
+  } catch (error) {
+    return next(error);
   }
 };
