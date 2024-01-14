@@ -1,3 +1,5 @@
+/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable import/order */
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -23,7 +25,7 @@ module.exports.getUserById = async (req, res, next) => {
   try {
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
+      throw new NotFoundError('Пользователь по указанному id не найден');
     }
     return res.status(OK).send(user);
   } catch (error) {
@@ -68,7 +70,7 @@ module.exports.updateUserInfo = async (req, res, next) => {
       { name, about },
       { new: true, runValidators: true },
     )
-    .orFail(() => new NotFoundError('Пользователь по указанному id не найден'));
+      .orFail(() => new NotFoundError('Пользователь по указанному id не найден'));
     return res.send(user);
   } catch (error) {
     return next(error);
@@ -84,7 +86,7 @@ module.exports.updateUserAvatar = async (req, res, next) => {
       { avatar },
       { new: true, runValidators: true },
     )
-    .orFail(() => new NotFoundError('Пользователь по указанному id не найден'));
+      .orFail(() => new NotFoundError('Пользователь по указанному id не найден'));
     return res.send(user);
   } catch (error) {
     return next(error);
@@ -94,8 +96,8 @@ module.exports.updateUserAvatar = async (req, res, next) => {
 module.exports.login = async (req, res, next) => {
   const { email, password } = req.body;
   try {
-    const user = await User.findOne({email}).select("+password")
-    .orFail(() => new UnauthorizedError('Неправильные почта или пароль'));
+    const user = await User.findOne({ email }).select('+password')
+      .orFail(() => new UnauthorizedError('Неправильные почта или пароль'));
     const matched = await bcrypt.compare(password, user.password);
     if (!matched) {
       throw new UnauthorizedError('Неправильные почта или пароль');
@@ -103,12 +105,12 @@ module.exports.login = async (req, res, next) => {
     const token = jwt.sign(
       { _id: user._id },
       'dev-secret',
-      {expiresIn: '7d'},
+      { expiresIn: '7d' },
     );
     return res
       .status(OK)
       .cookie('jwt', token, { maxAge: 3600000 * 24 * 7, httpOnly: true })
-      .send({ data: { _id: user._id, email: user.email }, token })
+      .send({ data: { _id: user._id, email: user.email }, token });
   } catch (error) {
     return next(error);
   }
@@ -118,7 +120,7 @@ module.exports.getUser = async (req, res, next) => {
   const { _id } = req.user;
   try {
     const user = await User.findById(_id);
-    res.status(OK).send(user);
+    return res.status(OK).send(user);
   } catch (error) {
     return next(error);
   }

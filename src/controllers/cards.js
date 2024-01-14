@@ -37,7 +37,7 @@ module.exports.deleteCard = async (req, res, next) => {
       _id: cardId,
       owner,
     })
-    .orFail(() => new NotFoundError('Карточка по указанному id не найдена'));
+      .orFail(() => new NotFoundError('Карточка по указанному id не найдена'));
     if (owner !== selectedCard.owner.toString()) {
       throw new ForbiddenError('Нельзя удалить чужую карточку');
     }
@@ -55,7 +55,7 @@ module.exports.likeCard = async (req, res, next) => {
       { $addToSet: { likes: req.user._id } },
       { new: true },
     )
-    .orFail(() => new NotFoundError('Карточка по указанному id не найдена'));
+      .orFail(() => new NotFoundError('Карточка по указанному id не найдена'));
     return res.send(card);
   } catch (error) {
     return next(error);
@@ -70,7 +70,7 @@ module.exports.dislikeCard = async (req, res, next) => {
       { $pull: { likes: req.user._id } },
       { new: true },
     )
-    .orFail(() => new NotFoundError('Карточка по указанному id не найдена'));
+      .orFail(() => new NotFoundError('Карточка по указанному id не найдена'));
     return res.send(card);
   } catch (error) {
     return next(error);

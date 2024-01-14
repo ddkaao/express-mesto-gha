@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 const mongoose = require('mongoose');
 const validator = require('validator');
 
@@ -37,7 +38,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       minLength: 8,
       select: false,
-    }
+    },
   },
   { versionKey: false },
 );
