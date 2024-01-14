@@ -12,6 +12,7 @@ const { celebrate, Joi } = require('celebrate');
 const { auth } = require('./middlewares/auth');
 const { error } = require('./middlewares/error');
 const { errors } = require('celebrate');
+const NotFoundError = require('./errors/NotFoundError');
 
 const app = express();
 const REGEX = /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/;
@@ -42,6 +43,10 @@ app.post('/signup', celebrate({
     password: Joi.string().required(),
   }),
 }), createUser);
+
+app.use('/', (req, res, next) => {
+  next(new NotFoundError('Страницы не существует'));
+});
 
 app.use(auth);
 app.use('/users', require('./routes/users'));
