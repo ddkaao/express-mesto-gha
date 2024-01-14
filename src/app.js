@@ -8,11 +8,13 @@ const {
   login,
 } = require('./controllers/users');
 const cookieParser = require('cookie-parser');
+const { celebrate, Joi } = require('celebrate');
 const { auth } = require('./middlewares/auth');
 const { error } = require('./middlewares/error');
 const { errors } = require('celebrate');
 
 const app = express();
+const REGEX = /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/;
 const PORT = 3000;
 const URI = 'mongodb://127.0.0.1:27017/mestodb';
 
@@ -22,8 +24,24 @@ app.use(express.json());
 
 app.use(cookieParser());
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    about: Joi.string().required().min(2).max(30),
+    avatar: Joi.string().required().regex(REGEX),
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+  }),
+}), login);
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    about: Joi.string().required().min(2).max(30),
+    avatar: Joi.string().required().regex(REGEX),
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+  }),
+}), createUser);
 
 app.use(auth);
 app.use('/users', require('./routes/users'));
